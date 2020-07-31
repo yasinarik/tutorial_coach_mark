@@ -87,7 +87,7 @@ class TutorialCoachMark {
   }
 
   bool _backButtonInterceptor(bool stopDefaultButtonEvent) {
-    hide();
+    finish();
     return true;
   }
 }
