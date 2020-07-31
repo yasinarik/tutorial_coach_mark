@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/animated_focus_light.dart';
 import 'package:tutorial_coach_mark/content_target.dart';
@@ -8,6 +6,21 @@ import 'package:tutorial_coach_mark/target_position.dart';
 import 'package:tutorial_coach_mark/util.dart';
 
 class TutorialCoachMarkWidget extends StatefulWidget {
+  const TutorialCoachMarkWidget({
+    Key key,
+    this.targets,
+    this.finish,
+    this.paddingFocus = 10,
+    this.clickTarget,
+    this.alignSkip = Alignment.bottomRight,
+    this.textSkip = "SKIP",
+    this.clickSkip,
+    this.colorShadow = Colors.black,
+    this.opacityShadow = 0.8,
+    this.textStyleSkip = const TextStyle(color: Colors.white),
+    this.hideSkip,
+  }) : super(key: key);
+
   final List<TargetFocus> targets;
   final Function(TargetFocus) clickTarget;
   final Function() finish;
@@ -20,30 +33,13 @@ class TutorialCoachMarkWidget extends StatefulWidget {
   final TextStyle textStyleSkip;
   final bool hideSkip;
 
-  const TutorialCoachMarkWidget(
-      {Key key,
-      this.targets,
-      this.finish,
-      this.paddingFocus = 10,
-      this.clickTarget,
-      this.alignSkip = Alignment.bottomRight,
-      this.textSkip = "SKIP",
-      this.clickSkip,
-      this.colorShadow = Colors.black,
-      this.opacityShadow = 0.8,
-      this.textStyleSkip = const TextStyle(color: Colors.white),
-      this.hideSkip})
-      : super(key: key);
-
   @override
-  _TutorialCoachMarkWidgetState createState() =>
-      _TutorialCoachMarkWidgetState();
+  TutorialCoachMarkWidgetState createState() => TutorialCoachMarkWidgetState();
 }
 
-class _TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget> {
-  StreamController _controllerFade = StreamController<double>.broadcast();
-  StreamController _controllerTapChild = StreamController<void>.broadcast();
-
+class TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget> {
+  final GlobalKey<AnimatedFocusLightState> _focusLightKey = GlobalKey();
+  bool showContent = false;
   TargetFocus currentTarget;
 
   @override
@@ -53,6 +49,7 @@ class _TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget> {
       child: Stack(
         children: <Widget>[
           AnimatedFocusLight(
+            key: _focusLightKey,
             targets: widget.targets,
             finish: widget.finish,
             paddingFocus: widget.paddingFocus,
@@ -62,51 +59,45 @@ class _TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget> {
               if (widget.clickTarget != null) widget.clickTarget(target);
             },
             focus: (target) {
-              currentTarget = target;
-              _controllerFade.sink.add(1.0);
+              setState(() {
+                currentTarget = target;
+                showContent = true;
+              });
             },
             removeFocus: () {
-              _controllerFade.sink.add(0.0);
+              setState(() {
+                showContent = false;
+              });
             },
-            streamTap: _controllerTapChild.stream,
           ),
-          _buildContents(),
+          AnimatedOpacity(
+            opacity: showContent ? 1 : 0,
+            duration: Duration(milliseconds: 300),
+            child: _buildContents(),
+          ),
           _buildSkip()
         ],
       ),
     );
   }
 
-  _buildContents() {
-    return StreamBuilder(
-      stream: _controllerFade.stream,
-      initialData: 0.0,
-      builder: (_, snapshot) {
-        try {
-          return AnimatedOpacity(
-            opacity: snapshot.data,
-            duration: Duration(milliseconds: 300),
-            child: _buildPositionedsContents(),
-          );
-        } catch (err) {
-          return Container();
-        }
-      },
-    );
-  }
-
-  _buildPositionedsContents() {
+  Widget _buildContents() {
     if (currentTarget == null) {
-      return Container();
+      return SizedBox.shrink();
     }
 
-    List<Widget> widgtes = List();
+    List<Widget> children = List();
 
     TargetPosition target = getTargetCurrent(currentTarget);
-    var positioned = Offset(target.offset.dx + target.size.width / 2,
-        target.offset.dy + target.size.height / 2);
+
+    var positioned = Offset(
+      target.offset.dx + target.size.width / 2,
+      target.offset.dy + target.size.height / 2,
+    );
+
     double haloWidth;
     double haloHeight;
+
     if (currentTarget.shape == ShapeLightFocus.Circle) {
       haloWidth = target.size.width > target.size.height
           ? target.size.width
@@ -116,15 +107,16 @@ class _TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget> {
       haloWidth = target.size.width;
       haloHeight = target.size.height;
     }
+
     haloWidth = haloWidth * 0.6 + widget.paddingFocus;
     haloHeight = haloHeight * 0.6 + widget.paddingFocus;
-    double weight = 0.0;
 
+    double weight = 0.0;
     double top;
     double bottom;
     double left;
 
-    widgtes = currentTarget.contents.map<Widget>((i) {
+    children = currentTarget.contents.map<Widget>((i) {
       switch (i.align) {
         case AlignContent.bottom:
           {
@@ -159,71 +151,60 @@ class _TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget> {
             weight = MediaQuery.of(context).size.width - left;
           }
           break;
+        case AlignContent.custom:
+          {
+            left = i.customPosition.left;
+            top = i.customPosition.top;
+            bottom = i.customPosition.bottom;
+            weight = MediaQuery.of(context).size.width;
+          }
+          break;
       }
 
       return Positioned(
         top: top,
         bottom: bottom,
         left: left,
-        child: GestureDetector(
-          onTap: () {
-            _controllerTapChild.add(null);
-          },
-          child: Container(
-            width: weight,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: i.child,
-            ),
+        child: Container(
+          width: weight,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: i.child,
           ),
         ),
       );
     }).toList();
 
     return Stack(
-      children: widgtes,
+      children: children,
     );
   }
 
-  _buildSkip() {
+  Widget _buildSkip() {
     if (widget.hideSkip) {
-      return Container();
+      return SizedBox.shrink();
     }
     return Align(
       alignment: widget.alignSkip,
       child: SafeArea(
-        child: StreamBuilder(
-          stream: _controllerFade.stream,
-          initialData: 0.0,
-          builder: (_, snapshot) {
-            return AnimatedOpacity(
-              opacity: snapshot.data,
-              duration: Duration(milliseconds: 300),
-              child: InkWell(
-                onTap: () {
-                  widget.finish();
-                  if (widget.clickSkip != null) {
-                    widget.clickSkip();
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Text(
-                    widget.textSkip,
-                    style: widget.textStyleSkip,
-                  ),
-                ),
+        child: AnimatedOpacity(
+          opacity: showContent ? 1 : 0,
+          duration: Duration(milliseconds: 300),
+          child: InkWell(
+            onTap: widget.clickSkip,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text(
+                widget.textSkip,
+                style: widget.textStyleSkip,
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _controllerFade.close();
-    super.dispose();
-  }
+  void next() => _focusLightKey?.currentState?.next();
+  void previous() => _focusLightKey?.currentState?.previous();
 }
