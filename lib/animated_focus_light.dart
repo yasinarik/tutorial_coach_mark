@@ -17,6 +17,8 @@ class AnimatedFocusLight extends StatefulWidget {
   final double paddingFocus;
   final Color colorShadow;
   final double opacityShadow;
+  final Duration focusAnimationDuration;
+  final Duration pulseAnimationDuration;
 
   const AnimatedFocusLight({
     Key key,
@@ -28,14 +30,16 @@ class AnimatedFocusLight extends StatefulWidget {
     this.paddingFocus = 10,
     this.colorShadow = Colors.black,
     this.opacityShadow = 0.8,
+    this.focusAnimationDuration,
+    this.pulseAnimationDuration,
   }) : super(key: key);
 
   @override
   AnimatedFocusLightState createState() => AnimatedFocusLightState();
 }
 
-class AnimatedFocusLightState extends State<AnimatedFocusLight>
-    with TickerProviderStateMixin {
+class AnimatedFocusLightState extends State<AnimatedFocusLight> with TickerProviderStateMixin {
+  static const BORDER_RADIUS_DEFAULT = 10.0;
   AnimationController _controller;
   AnimationController _controllerPulse;
   CurvedAnimation _curvedAnimation;
@@ -57,7 +61,7 @@ class AnimatedFocusLightState extends State<AnimatedFocusLight>
     _targetFocus = widget?.targets[_currentFocus];
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 600),
+      duration: widget.focusAnimationDuration ?? Duration(milliseconds: 600),
     );
 
     _curvedAnimation = CurvedAnimation(
@@ -67,7 +71,7 @@ class AnimatedFocusLightState extends State<AnimatedFocusLight>
 
     _controllerPulse = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 500),
+      duration: widget.pulseAnimationDuration ?? Duration(milliseconds: 500),
     );
 
     _tweenPulse = Tween(begin: 1.0, end: 0.99).animate(
@@ -108,15 +112,15 @@ class AnimatedFocusLightState extends State<AnimatedFocusLight>
                     ),
                   ),
                   Positioned(
-                    left: (_targetPosition?.offset?.dx ?? 0) - 10,
-                    top: (_targetPosition?.offset?.dy ?? 0) - 10,
+                    left: (_targetPosition?.offset?.dx ?? 0) - _getPaddingFocus() * 2,
+                    top: (_targetPosition?.offset?.dy ?? 0) - _getPaddingFocus() * 2,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: _betBorderRadiusTarget(),
                       onTap: _targetFocus.enableTargetTab ? next : null,
                       child: Container(
                         color: Colors.transparent,
-                        width: (_targetPosition?.size?.width ?? 0) + 20,
-                        height: (_targetPosition?.size?.height ?? 0) + 20,
+                        width: (_targetPosition?.size?.width ?? 0) + _getPaddingFocus() * 4,
+                        height: (_targetPosition?.size?.height ?? 0) + _getPaddingFocus() * 4,
                       ),
                     ),
                   )
@@ -178,9 +182,9 @@ class AnimatedFocusLightState extends State<AnimatedFocusLight>
       );
 
       if (targetPosition.size.height > targetPosition.size.width) {
-        _sizeCircle = targetPosition.size.height * 0.6 + widget.paddingFocus;
+        _sizeCircle = targetPosition.size.height * 0.6 + _getPaddingFocus();
       } else {
-        _sizeCircle = targetPosition.size.width * 0.6 + widget.paddingFocus;
+        _sizeCircle = targetPosition.size.width * 0.6 + _getPaddingFocus();
       }
     });
 
@@ -249,7 +253,7 @@ class AnimatedFocusLightState extends State<AnimatedFocusLight>
       return LightPaintRect(
         colorShadow: target?.color ?? widget.colorShadow,
         progress: _progressAnimated,
-        offset: widget.paddingFocus,
+        offset: _getPaddingFocus(),
         target: _targetPosition ?? TargetPosition(Size.zero, Offset.zero),
         radius: target?.radius ?? 0,
         opacityShadow: widget.opacityShadow,
@@ -263,5 +267,16 @@ class AnimatedFocusLightState extends State<AnimatedFocusLight>
         opacityShadow: widget.opacityShadow,
       );
     }
+  }
+
+  double _getPaddingFocus() {
+    return _targetFocus?.paddingFocus ?? (widget.paddingFocus ?? 10);
+  }
+
+  BorderRadius _betBorderRadiusTarget() {
+    double radius = _targetFocus?.shape == ShapeLightFocus.Circle
+        ? (_targetPosition?.size?.width ?? BORDER_RADIUS_DEFAULT)
+        : _targetFocus?.radius ?? BORDER_RADIUS_DEFAULT;
+    return BorderRadius.circular(radius);
   }
 }
