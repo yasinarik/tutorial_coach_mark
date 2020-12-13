@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tutorial_coach_mark/light_paint.dart';
@@ -119,8 +121,8 @@ class AnimatedFocusLightState extends State<AnimatedFocusLight> with TickerProvi
                       onTap: _targetFocus.enableTargetTab ? next : null,
                       child: Container(
                         color: Colors.transparent,
-                        width: (_targetPosition?.size?.width ?? 0) + _getPaddingFocus() * 4,
-                        height: (_targetPosition?.size?.height ?? 0) + _getPaddingFocus() * 4,
+                        width: max(((_targetPosition?.size?.width ?? 0) + _getPaddingFocus() * 4), 0),
+                        height: max(((_targetPosition?.size?.height ?? 0) + _getPaddingFocus() * 4), 0),
                       ),
                     ),
                   )
