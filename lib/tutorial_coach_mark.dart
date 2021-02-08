@@ -2,19 +2,21 @@ library tutorial_coach_mark;
 
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:flutter/material.dart';
-import 'package:tutorial_coach_mark/target_focus.dart';
-import 'package:tutorial_coach_mark/tutorial_coach_mark_widget.dart';
+import 'package:tutorial_coach_mark/src/target/target_focus.dart';
+import 'package:tutorial_coach_mark/src/widgets/tutorial_coach_mark_widget.dart';
 
-export 'package:tutorial_coach_mark/content_target.dart';
-export 'package:tutorial_coach_mark/target_focus.dart';
+export 'package:tutorial_coach_mark/src/target/target_content.dart';
+export 'package:tutorial_coach_mark/src/target/target_focus.dart';
+export 'package:tutorial_coach_mark/src/util.dart';
 
 class TutorialCoachMark {
   final BuildContext _context;
   final List<TargetFocus> targets;
   final Function(TargetFocus) onClickTarget;
+  final Function(TargetFocus) onClickOverlay;
   final Function() onFinish;
   final double paddingFocus;
-  final Function() onClickSkip;
+  final Function() onSkip;
   final AlignmentGeometry alignSkip;
   final String textSkip;
   final TextStyle textStyleSkip;
@@ -32,9 +34,10 @@ class TutorialCoachMark {
     this.targets,
     this.colorShadow = Colors.black,
     this.onClickTarget,
+    this.onClickOverlay,
     this.onFinish,
     this.paddingFocus = 10,
-    this.onClickSkip,
+    this.onSkip,
     this.alignSkip = Alignment.bottomRight,
     this.textSkip = "SKIP",
     this.textStyleSkip = const TextStyle(color: Colors.white),
@@ -51,8 +54,9 @@ class TutorialCoachMark {
           key: _widgetKey,
           targets: targets,
           clickTarget: onClickTarget,
+          clickOverlay: onClickOverlay,
           paddingFocus: paddingFocus,
-          clickSkip: skip,
+          onClickSkip: skip,
           alignSkip: alignSkip,
           textSkip: textSkip,
           textStyleSkip: textStyleSkip,
@@ -68,11 +72,15 @@ class TutorialCoachMark {
   }
 
   void show() {
-    if (_overlayEntry == null) {
-      _overlayEntry = _buildOverlay();
-      Overlay.of(_context).insert(_overlayEntry);
-      BackButtonInterceptor.add(_backButtonInterceptor);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(Duration.zero, () {
+        if (_overlayEntry == null) {
+          _overlayEntry = _buildOverlay();
+          Overlay.of(_context).insert(_overlayEntry);
+          BackButtonInterceptor.add(_backButtonInterceptor);
+        }
+      });
+    });
   }
 
   void finish() {
@@ -81,11 +89,14 @@ class TutorialCoachMark {
   }
 
   void skip() {
-    onClickSkip?.call();
+    onSkip?.call();
     _removeOverlay();
   }
 
+  bool get isShowing => _overlayEntry != null;
+
   void next() => _widgetKey?.currentState?.next();
+
   void previous() => _widgetKey?.currentState?.previous();
 
   void _removeOverlay() {
