@@ -2,18 +2,17 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:tutorial_coach_mark/light_paint.dart';
-import 'package:tutorial_coach_mark/light_paint_rect.dart';
-import 'package:tutorial_coach_mark/target_focus.dart';
-import 'package:tutorial_coach_mark/target_position.dart';
-import 'package:tutorial_coach_mark/util.dart';
-
-enum ShapeLightFocus { Circle, RRect }
+import 'package:tutorial_coach_mark/src/paint/light_paint.dart';
+import 'package:tutorial_coach_mark/src/paint/light_paint_rect.dart';
+import 'package:tutorial_coach_mark/src/target/target_focus.dart';
+import 'package:tutorial_coach_mark/src/target/target_position.dart';
+import 'package:tutorial_coach_mark/src/util.dart';
 
 class AnimatedFocusLight extends StatefulWidget {
   final List<TargetFocus> targets;
   final Function(TargetFocus) focus;
   final Function(TargetFocus) clickTarget;
+  final Function(TargetFocus) clickOverlay;
   final Function removeFocus;
   final Function() finish;
   final double paddingFocus;
@@ -29,6 +28,7 @@ class AnimatedFocusLight extends StatefulWidget {
     this.finish,
     this.removeFocus,
     this.clickTarget,
+    this.clickOverlay,
     this.paddingFocus = 10,
     this.colorShadow = Colors.black,
     this.opacityShadow = 0.8,
@@ -93,7 +93,7 @@ class AnimatedFocusLightState extends State<AnimatedFocusLight> with TickerProvi
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: _targetFocus.enableOverlayTab ? next : null,
+      onTap: _targetFocus.enableOverlayTab ? () => _tapHandler(overlayTap: true) : null,
       child: AnimatedBuilder(
         animation: _controller,
         builder: (_, child) {
@@ -118,7 +118,7 @@ class AnimatedFocusLightState extends State<AnimatedFocusLight> with TickerProvi
                     top: (_targetPosition?.offset?.dy ?? 0) - _getPaddingFocus() * 2,
                     child: InkWell(
                       borderRadius: _betBorderRadiusTarget(),
-                      onTap: _targetFocus.enableTargetTab ? next : null,
+                      onTap: _targetFocus.enableTargetTab ? () => _tapHandler(targetTap: true) : null,
                       child: Container(
                         color: Colors.transparent,
                         width: max(((_targetPosition?.size?.width ?? 0) + _getPaddingFocus() * 4), 0),
@@ -138,13 +138,18 @@ class AnimatedFocusLightState extends State<AnimatedFocusLight> with TickerProvi
   void next() => _tapHandler();
   void previous() => _tapHandler(goNext: false);
 
-  void _tapHandler({bool goNext = true}) {
+  void _tapHandler({bool goNext = true, bool targetTap = false, bool overlayTap = false}) {
     setState(() {
       _goNext = goNext;
       _initReverse = true;
     });
     _controllerPulse.reverse(from: _controllerPulse.value);
-    widget?.clickTarget(_targetFocus);
+    if (targetTap) {
+      widget?.clickTarget(_targetFocus);
+    }
+    if (overlayTap) {
+      widget?.clickOverlay(_targetFocus);
+    }
   }
 
   void _nextFocus() {
