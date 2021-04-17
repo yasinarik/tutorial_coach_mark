@@ -16,19 +16,23 @@ class TargetFocus {
     this.enableTargetTab = true,
     this.alignSkip,
     this.paddingFocus,
+    this.focusAnimationDuration,
+    this.pulseVariation,
   }) : assert(keyTarget != null || targetPosition != null);
 
   final dynamic identify;
-  final GlobalKey keyTarget;
-  final TargetPosition targetPosition;
-  final List<TargetContent> contents;
-  final ShapeLightFocus shape;
-  final double radius;
+  final GlobalKey? keyTarget;
+  final TargetPosition? targetPosition;
+  final List<TargetContent>? contents;
+  final ShapeLightFocus? shape;
+  final double? radius;
   final bool enableOverlayTab;
   final bool enableTargetTab;
-  final Color color;
-  final AlignmentGeometry alignSkip;
-  final double paddingFocus;
+  final Color? color;
+  final AlignmentGeometry? alignSkip;
+  final double? paddingFocus;
+  final Duration? focusAnimationDuration;
+  final Tween<double>? pulseVariation;
 
   @override
   String toString() {
