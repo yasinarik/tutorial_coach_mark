@@ -1,3 +1,14 @@
+# 1.0.3
+- Fix blink when start tutorial with shape `ShapeLightFocus.RRec`
+
+# 1.0.2
+- Adds builder(BuildContext context, TutorialCoachMarkController controller) in `TargetContent`.
+Now you can create a widget of the `TargetContent` with `child` or `builder`.
+
+# 1.0.1
+
+- Merged PR [72](https://github.com/RafaelBarbosatec/tutorial_coach_mark/pull/72)
+
 # 1.0.0
 
 - Migrate to Null-Safety

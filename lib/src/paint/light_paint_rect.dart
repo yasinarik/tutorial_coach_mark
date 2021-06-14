@@ -1,3 +1,6 @@
+import 'dart:math';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/src/target/target_position.dart';
 
@@ -26,9 +29,12 @@ class LightPaintRect extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (target.offset == Offset.zero) return;
     canvas.saveLayer(Offset.zero & size, Paint());
     canvas.drawColor(colorShadow.withOpacity(opacityShadow), BlendMode.dstATop);
-    var maxSize = size.width > size.height ? size.width : size.height;
+
+    var maxSize = max(size.width, size.height) +
+        max(target.size.width, target.size.height);
 
     double x = -maxSize / 2 * (1 - progress) + target.offset.dx - offset / 2;
 
@@ -39,7 +45,9 @@ class LightPaintRect extends CustomPainter {
     double h = maxSize * (1 - progress) + target.size.height + offset;
 
     RRect rrect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x, y, w, h), Radius.circular(radius));
+      Rect.fromLTWH(x, y, w, h),
+      Radius.circular(radius),
+    );
     canvas.drawRRect(rrect, _paintFocus);
     canvas.restore();
   }
