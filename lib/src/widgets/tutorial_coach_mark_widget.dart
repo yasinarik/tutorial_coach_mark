@@ -22,6 +22,7 @@ class TutorialCoachMarkWidget extends StatefulWidget {
     this.focusAnimationDuration,
     this.pulseAnimationDuration,
     this.pulseVariation,
+    this.skipWidget,
   })  : assert(targets.length > 0),
         super(key: key);
 
@@ -40,12 +41,14 @@ class TutorialCoachMarkWidget extends StatefulWidget {
   final Duration? focusAnimationDuration;
   final Duration? pulseAnimationDuration;
   final Tween<double>? pulseVariation;
+  final Widget? skipWidget;
 
   @override
   TutorialCoachMarkWidgetState createState() => TutorialCoachMarkWidgetState();
 }
 
-class TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget> {
+class TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget>
+    implements TutorialCoachMarkController {
   final GlobalKey<AnimatedFocusLightState> _focusLightKey = GlobalKey();
   bool showContent = false;
   TargetFocus? currentTarget;
@@ -53,7 +56,7 @@ class TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      type: MaterialType.transparency,
       child: Stack(
         children: <Widget>[
           AnimatedFocusLight(
@@ -186,7 +189,9 @@ class TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget> {
           width: weight,
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: i.child,
+            child: i.builder != null
+                ? i.builder?.call(context, this)
+                : (i.child ?? SizedBox.shrink()),
           ),
         ),
       );
@@ -208,12 +213,15 @@ class TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget> {
           opacity: showContent ? 1 : 0,
           duration: Duration(milliseconds: 300),
           child: InkWell(
-            onTap: widget.onClickSkip,
+            onTap: skip,
             child: Padding(
               padding: const EdgeInsets.all(20.0),
-              child: Text(
-                widget.textSkip,
-                style: widget.textStyleSkip,
+              child: IgnorePointer(
+                child: widget.skipWidget ??
+                    Text(
+                      widget.textSkip,
+                      style: widget.textStyleSkip,
+                    ),
               ),
             ),
           ),
@@ -222,6 +230,9 @@ class TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget> {
     );
   }
 
+  void skip() => widget.onClickSkip?.call();
+
   void next() => _focusLightKey.currentState?.next();
+
   void previous() => _focusLightKey.currentState?.previous();
 }
