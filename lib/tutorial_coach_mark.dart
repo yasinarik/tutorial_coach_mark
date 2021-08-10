@@ -75,14 +75,12 @@ class TutorialCoachMark {
   }
 
   void show() {
-
-      Future.delayed(Duration.zero, () {
-        if (_overlayEntry == null) {
-          _overlayEntry = _buildOverlay();
-          Overlay.of(_context)!.insert(_overlayEntry!);
-          BackButtonInterceptor.add(_backButtonInterceptor);
-        }
-
+    Future.delayed(Duration.zero, () {
+      if (_overlayEntry == null) {
+        _overlayEntry = _buildOverlay();
+        Overlay.of(_context)?.insert(_overlayEntry!);
+        BackButtonInterceptor.add(_backButtonInterceptor);
+      }
     });
   }
 
