@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/src/target/target_content.dart';
 import 'package:tutorial_coach_mark/src/target/target_focus.dart';
@@ -22,13 +24,14 @@ class TutorialCoachMarkWidget extends StatefulWidget {
     this.focusAnimationDuration,
     this.pulseAnimationDuration,
     this.pulseVariation,
+    this.pulseEnable = true,
     this.skipWidget,
   })  : assert(targets.length > 0),
         super(key: key);
 
   final List<TargetFocus> targets;
-  final Function(TargetFocus)? clickTarget;
-  final Function(TargetFocus)? clickOverlay;
+  final FutureOr Function(TargetFocus)? clickTarget;
+  final FutureOr Function(TargetFocus)? clickOverlay;
   final Function()? finish;
   final Color colorShadow;
   final double opacityShadow;
@@ -41,6 +44,7 @@ class TutorialCoachMarkWidget extends StatefulWidget {
   final Duration? focusAnimationDuration;
   final Duration? pulseAnimationDuration;
   final Tween<double>? pulseVariation;
+  final bool pulseEnable;
   final Widget? skipWidget;
 
   @override
@@ -69,11 +73,12 @@ class TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget>
             focusAnimationDuration: widget.focusAnimationDuration,
             pulseAnimationDuration: widget.pulseAnimationDuration,
             pulseVariation: widget.pulseVariation,
+            pulseEnable: widget.pulseEnable,
             clickTarget: (target) {
-              widget.clickTarget?.call(target);
+              return widget.clickTarget?.call(target);
             },
             clickOverlay: (target) {
-              widget.clickOverlay?.call(target);
+              return widget.clickOverlay?.call(target);
             },
             focus: (target) {
               setState(() {
@@ -188,7 +193,7 @@ class TutorialCoachMarkWidgetState extends State<TutorialCoachMarkWidget>
         child: Container(
           width: weight,
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: i.padding,
             child: i.builder != null
                 ? i.builder?.call(context, this)
                 : (i.child ?? SizedBox.shrink()),

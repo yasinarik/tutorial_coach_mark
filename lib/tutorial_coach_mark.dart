@@ -1,5 +1,8 @@
 library tutorial_coach_mark;
 
+import 'dart:async';
+
+
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/src/target/target_focus.dart';
@@ -13,8 +16,8 @@ export 'package:tutorial_coach_mark/src/util.dart';
 class TutorialCoachMark {
   final BuildContext _context;
   final List<TargetFocus> targets;
-  final Function(TargetFocus)? onClickTarget;
-  final Function(TargetFocus)? onClickOverlay;
+  final FutureOr<void> Function(TargetFocus)? onClickTarget;
+  final FutureOr<void> Function(TargetFocus)? onClickOverlay;
   final Function()? onFinish;
   final double paddingFocus;
   final Function()? onSkip;
@@ -27,6 +30,7 @@ class TutorialCoachMark {
   final GlobalKey<TutorialCoachMarkWidgetState> _widgetKey = GlobalKey();
   final Duration focusAnimationDuration;
   final Duration pulseAnimationDuration;
+  final bool pulseEnable;
   final Widget? skipWidget;
 
   OverlayEntry? _overlayEntry;
@@ -46,6 +50,7 @@ class TutorialCoachMark {
       this.opacityShadow = 0.8,
       this.focusAnimationDuration = const Duration(milliseconds: 600),
       this.pulseAnimationDuration = const Duration(milliseconds: 500),
+      this.pulseEnable = true,
       this.skipWidget})
       : assert(opacityShadow >= 0 && opacityShadow <= 1);
 
@@ -68,17 +73,18 @@ class TutorialCoachMark {
           opacityShadow: opacityShadow,
           focusAnimationDuration: focusAnimationDuration,
           pulseAnimationDuration: pulseAnimationDuration,
+          pulseEnable: pulseEnable,
           finish: finish,
         );
       },
     );
   }
 
-  void show() {
+  void show({bool rootOverlay = false}) {
     Future.delayed(Duration.zero, () {
       if (_overlayEntry == null) {
         _overlayEntry = _buildOverlay();
-        Overlay.of(_context)?.insert(_overlayEntry!);
+        Overlay.of(_context, rootOverlay: rootOverlay)?.insert(_overlayEntry!);
         BackButtonInterceptor.add(_backButtonInterceptor);
       }
     });
