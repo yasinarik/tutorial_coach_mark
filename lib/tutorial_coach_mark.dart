@@ -17,6 +17,7 @@ class TutorialCoachMark {
   final BuildContext _context;
   final List<TargetFocus> targets;
   final FutureOr<void> Function(TargetFocus)? onClickTarget;
+  final FutureOr<void> Function(TargetFocus, TapDownDetails)? onClickTargetWithTapPosition;
   final FutureOr<void> Function(TargetFocus)? onClickOverlay;
   final Function()? onFinish;
   final double paddingFocus;
@@ -40,6 +41,7 @@ class TutorialCoachMark {
       {required this.targets,
         this.colorShadow = Colors.black,
         this.onClickTarget,
+        this.onClickTargetWithTapPosition,
         this.onClickOverlay,
         this.onFinish,
         this.paddingFocus = 10,
@@ -63,6 +65,7 @@ class TutorialCoachMark {
           key: _widgetKey,
           targets: targets,
           clickTarget: onClickTarget,
+          onClickTargetWithTapPosition: onClickTargetWithTapPosition,
           clickOverlay: onClickOverlay,
           paddingFocus: paddingFocus,
           onClickSkip: skip,
