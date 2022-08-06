@@ -1,3 +1,11 @@
+# 1.2.4
+- BREAKING CHANGE: moved `context` of the TutorialCoachMark to `show` method. `tutorialCoachMark.show(context:context);`
+- Resolve issue [#125](https://github.com/RafaelBarbosatec/tutorial_coach_mark/issues/125)
+
+# 1.2.3
+- Fix warn build in Flutter 3.0.
+- Collect target tap position. [PR #116](https://github.com/RafaelBarbosatec/tutorial_coach_mark/pull/116)
+
 # 1.2.2
 - Add unfocus animation duration. [PR #111](https://github.com/RafaelBarbosatec/tutorial_coach_mark/pull/111)
 - Update Build gradle, kotlin, fix manifest. [PR #110](https://github.com/RafaelBarbosatec/tutorial_coach_mark/pull/110)
